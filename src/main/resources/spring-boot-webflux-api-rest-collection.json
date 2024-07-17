@@ -1,0 +1,140 @@
+{
+	"info": {
+		"_postman_id": "751deab2-6284-4f29-a439-8caf3b602cf9",
+		"name": "Spring WebFlux",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "6846038"
+	},
+	"item": [
+		{
+			"name": "Listar productos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear producto",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product\": {\n        \"name\": \"IPhone 8\",\n        \"price\": 100.89,\n        \"category\": {\n            \"id\": \"66982d066e839944104b60b8\",\n            \"name\": \"Mobile Phone\"\n        }\n    },\n    \"imageProduct\": \"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\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Actualizar producto",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"price\": 1000\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/products/66982d066e839944104b60bc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"products",
+						"66982d066e839944104b60bc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Borrar producto a través de su ID",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/products/66982d066e839944104b60bc",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"products",
+						"66982d066e839944104b60bc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Crear producto error validación",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product\": { \n        \"name\": \"Asus Notebook\",       \n        \"price\": 100.89\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/products/valid",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"products",
+						"valid"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
