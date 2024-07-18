@@ -7,6 +7,9 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
@@ -14,6 +17,7 @@ import com.johannpando.springboot.webflux.app.document.Product;
 import com.johannpando.springboot.webflux.app.dto.ImageProductDTO;
 import com.johannpando.springboot.webflux.app.service.ProductService;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -21,6 +25,9 @@ public class ProductHandler {
 
 	@Autowired
 	private ProductService productService;
+	
+	@Autowired
+	private Validator validator;
 	
 	public Mono<ServerResponse> listAllProducts(ServerRequest request) {
 		return ServerResponse
@@ -43,28 +50,41 @@ public class ProductHandler {
 	}
 	
 	public Mono<ServerResponse> createProduct(ServerRequest request) {
+		
+		
 		// Get the product from request
 		Mono<ImageProductDTO> dtoMono = request.bodyToMono(ImageProductDTO.class);
 		
 		return dtoMono.flatMap(dto -> {
 			Product p = dto.getProduct();
-			if (dto.getImageProduct() != null) {
-				byte[] imageDecode = Base64.getDecoder().decode(dto.getImageProduct());
-				p.setImage(imageDecode);
-			}
 			
-			if (p.getCreateAt() == null) {
-				p.setCreateAt(new Date());
+			Errors errors = new BeanPropertyBindingResult(dto, ImageProductDTO.class.getName());
+			validator.validate(dto, errors);
+			
+			if (errors.hasErrors()) {
+				return Flux.fromIterable(errors.getFieldErrors())
+					.map(fieldError -> "The field error " + fieldError.getField() + " " + fieldError.getDefaultMessage())
+					.collectList()
+					.flatMap(list -> ServerResponse.badRequest().bodyValue(list));
+			} else {
+				if (dto.getImageProduct() != null) {
+					byte[] imageDecode = Base64.getDecoder().decode(dto.getImageProduct());
+					p.setImage(imageDecode);
+				}
+				
+				if (p.getCreateAt() == null) {
+					p.setCreateAt(new Date());
+				}
+				return productService.save(p)
+					// We need to response with Mono<ServerResponse>
+					.flatMap(pdb -> 
+						ServerResponse
+							.created(URI.create("/api/v2/product/".concat(pdb.getId())))
+							.contentType(MediaType.APPLICATION_JSON)
+							.bodyValue(pdb)
+					);
 			}
-				return productService.save(p);
-			})
-			// We need to response with Mono<ServerResponse>
-			.flatMap(p -> 
-				ServerResponse
-					.created(URI.create("/api/v2/product/".concat(p.getId())))
-					.contentType(MediaType.APPLICATION_JSON)
-					.bodyValue(p)
-			);
+		});
 	}
 	
 	public Mono<ServerResponse> updatedProduct(ServerRequest request) {
