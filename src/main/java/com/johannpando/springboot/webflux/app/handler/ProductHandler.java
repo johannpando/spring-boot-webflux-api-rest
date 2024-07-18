@@ -1,6 +1,7 @@
 package com.johannpando.springboot.webflux.app.handler;
 
 import java.net.URI;
+import java.util.Base64;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.johannpando.springboot.webflux.app.document.Product;
+import com.johannpando.springboot.webflux.app.dto.ImageProductDTO;
 import com.johannpando.springboot.webflux.app.service.ProductService;
 
 import reactor.core.publisher.Mono;
@@ -42,23 +44,27 @@ public class ProductHandler {
 	
 	public Mono<ServerResponse> createProduct(ServerRequest request) {
 		// Get the product from request
-		Mono<Product> productMono = request.bodyToMono(Product.class);
+		Mono<ImageProductDTO> dtoMono = request.bodyToMono(ImageProductDTO.class);
 		
-		// We emits the product
-		return productMono.flatMap(p -> {
+		return dtoMono.flatMap(dto -> {
+			Product p = dto.getProduct();
+			if (dto.getImageProduct() != null) {
+				byte[] imageDecode = Base64.getDecoder().decode(dto.getImageProduct());
+				p.setImage(imageDecode);
+			}
+			
 			if (p.getCreateAt() == null) {
 				p.setCreateAt(new Date());
 			}
-			return productService.save(p);
-		})
-		// We need to response with Mono<ServerResponse>
-		.flatMap(p -> 
-			ServerResponse
-				.created(URI.create("/api/v2/product/".concat(p.getId())))
-				.contentType(MediaType.APPLICATION_JSON)
-				.bodyValue(p)
-				
-		);
+				return productService.save(p);
+			})
+			// We need to response with Mono<ServerResponse>
+			.flatMap(p -> 
+				ServerResponse
+					.created(URI.create("/api/v2/product/".concat(p.getId())))
+					.contentType(MediaType.APPLICATION_JSON)
+					.bodyValue(p)
+			);
 	}
 	
 	public Mono<ServerResponse> updatedProduct(ServerRequest request) {
