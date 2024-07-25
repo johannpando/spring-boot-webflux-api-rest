@@ -3,17 +3,17 @@ package com.johannpando.springboot.webflux.app.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.johannpando.springboot.webflux.app.dao.CategoryDAO;
+import com.johannpando.springboot.webflux.app.dao.ICategoryDAO;
 import com.johannpando.springboot.webflux.app.document.Category;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl implements ICategoryService {
 
 	@Autowired
-	private CategoryDAO categoryDAO;
+	private ICategoryDAO categoryDAO;
 	
 	@Override
 	public Flux<Category> findAll() {

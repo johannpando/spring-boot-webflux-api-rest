@@ -24,7 +24,7 @@ import org.springframework.web.bind.support.WebExchangeBindException;
 
 import com.johannpando.springboot.webflux.app.document.Product;
 import com.johannpando.springboot.webflux.app.dto.ImageProductDTO;
-import com.johannpando.springboot.webflux.app.service.ProductService;
+import com.johannpando.springboot.webflux.app.service.IProductService;
 
 import jakarta.validation.Valid;
 import reactor.core.publisher.Flux;
@@ -37,7 +37,7 @@ public class ProductRestController {
 	private static final Logger log = LoggerFactory.getLogger(ProductRestController.class);
 
 	@Autowired
-	private ProductService productService;
+	private IProductService productService;
 	
 	@GetMapping()
 	public Mono<ResponseEntity<Flux<Product>>> products() {

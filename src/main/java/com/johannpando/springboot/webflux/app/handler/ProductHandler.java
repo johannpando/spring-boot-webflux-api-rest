@@ -15,7 +15,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import com.johannpando.springboot.webflux.app.document.Product;
 import com.johannpando.springboot.webflux.app.dto.ImageProductDTO;
-import com.johannpando.springboot.webflux.app.service.ProductService;
+import com.johannpando.springboot.webflux.app.service.IProductService;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,29 +24,29 @@ import reactor.core.publisher.Mono;
 public class ProductHandler {
 
 	@Autowired
-	private ProductService productService;
+	private IProductService productService;
 	
 	@Autowired
 	private Validator validator;
 	
 	public Mono<ServerResponse> listAllProducts(ServerRequest request) {
 		return ServerResponse
-				.ok()
-				.contentType(MediaType.APPLICATION_JSON)
-				.body(productService.findAll(), Product.class);
+				.ok() // Indicate a successful response
+				.contentType(MediaType.APPLICATION_JSON) // Set the response content type to JSON
+				.body(productService.findAll(), Product.class); // Set the response body with the list of products
 	}
 	
 	public Mono<ServerResponse> getProductById(ServerRequest request) {
-		
+		// Extract the 'id' path variable from the request
 		String productId = request.pathVariable("id");
 		
-		return productService.findById(productId)
+		return productService.findById(productId) // Fin the product by ID
 			.flatMap(p -> 
 				ServerResponse
-					.ok()
-					.contentType(MediaType.APPLICATION_JSON)
-					.bodyValue(p)					
-			).switchIfEmpty(ServerResponse.notFound().build());
+					.ok() // Indicate a successful response
+					.contentType(MediaType.APPLICATION_JSON) // Set the response content type to JSON
+					.bodyValue(p) // Set the response with the found product					
+			).switchIfEmpty(ServerResponse.notFound().build()); // If the product is not found, return a 404 response
 	}
 	
 	public Mono<ServerResponse> createProduct(ServerRequest request) {
@@ -68,8 +68,8 @@ public class ProductHandler {
 					.flatMap(list -> ServerResponse.badRequest().bodyValue(list));
 			} else {
 				if (dto.getImageProduct() != null) {
-					byte[] imageDecode = Base64.getDecoder().decode(dto.getImageProduct());
-					p.setImage(imageDecode);
+					byte[] imageDecode = Base64.getDecoder().decode(dto.getImageProduct()); // Decode the base64 image
+					p.setImage(imageDecode); // Set the decoded image to the product
 				}
 				
 				if (p.getCreateAt() == null) {
@@ -79,9 +79,10 @@ public class ProductHandler {
 					// We need to response with Mono<ServerResponse>
 					.flatMap(pdb -> 
 						ServerResponse
+							// Indicate a resource creation response with the product ID in the URI
 							.created(URI.create("/api/v2/product/".concat(pdb.getId())))
-							.contentType(MediaType.APPLICATION_JSON)
-							.bodyValue(pdb)
+							.contentType(MediaType.APPLICATION_JSON) // Set the response content type to JSON
+							.bodyValue(pdb) // Set the response body with the saved product
 					);
 			}
 		});
@@ -90,30 +91,43 @@ public class ProductHandler {
 	public Mono<ServerResponse> updatedProduct(ServerRequest request) {
 		// Get the product from request
 		Mono<Product> productMono = request.bodyToMono(Product.class);
+		// Extract the 'id' path variable from the request
 		String productId = request.pathVariable("id");
 		
-		// If the product it is not found, it returns a Mono.empty()
-		Mono<Product> productFromBBDD = productService.findById(productId);
+		return productMono
+			.flatMap(pm -> {
+				Errors errors = new BeanPropertyBindingResult(pm, Product.class.getName());
+				validator.validate(pm, errors);
 				
-		// We combined the product from the BBDD and the product from request
-		return productFromBBDD.zipWith(productMono, (db, req) ->{
-			db.setName(req.getName());
-			db.setCategory(req.getCategory());
-			db.setPrice(req.getPrice());
-			return db;
-		})
-		// Now, we proceed to save the product
-		.flatMap(p ->
-			ServerResponse
-			// We redirect to the product detail through product id
-			.created(URI.create("/api/v2/product/".concat(p.getId())))
-			.contentType(MediaType.APPLICATION_JSON)
-			// We save the product
-			.body(productService.save(p), Product.class)
-		)
-		// If the product it is not found, "productFromBBDD" return a Mono.empty, so execute this line
-		.switchIfEmpty(ServerResponse.notFound().build());
-		
+				if (errors.hasErrors()) {
+					return Flux.fromIterable(errors.getFieldErrors())
+						.map(fieldError -> "The field error " + fieldError.getField() + " " + fieldError.getDefaultMessage())
+						.collectList()
+						.flatMap(list -> ServerResponse.badRequest().bodyValue(list));
+				} else {
+					// If the product it is not found, it returns a Mono.empty()
+					Mono<Product> productFromBBDD = productService.findById(productId);
+							
+					// We combined the product from the BBDD and the product from request
+					return productFromBBDD.zipWith(productMono, (db, req) ->{
+						db.setName(req.getName());
+						db.setCategory(req.getCategory());
+						db.setPrice(req.getPrice());
+						return db;
+					})
+					// Now, we proceed to save the product
+					.flatMap(p ->
+						ServerResponse
+						// We redirect to the product detail through product id
+						.created(URI.create("/api/v2/product/".concat(p.getId())))
+						.contentType(MediaType.APPLICATION_JSON) // Set the response content type to JSON
+						// We save the product
+						.body(productService.save(p), Product.class)
+					)
+					// If the product it is not found, "productFromBBDD" return a Mono.empty, so execute this line
+					.switchIfEmpty(ServerResponse.notFound().build());
+				}
+			});
 	}
 	
 	public Mono<ServerResponse> deleteProduct(ServerRequest request) {

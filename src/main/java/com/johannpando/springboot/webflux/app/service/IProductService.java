@@ -5,7 +5,7 @@ import com.johannpando.springboot.webflux.app.document.Product;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-public interface ProductService {
+public interface IProductService {
 	
 	Flux<Product> findAll();
 	

@@ -12,8 +12,8 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 
 import com.johannpando.springboot.webflux.app.document.Category;
 import com.johannpando.springboot.webflux.app.document.Product;
-import com.johannpando.springboot.webflux.app.service.CategoryService;
-import com.johannpando.springboot.webflux.app.service.ProductService;
+import com.johannpando.springboot.webflux.app.service.ICategoryService;
+import com.johannpando.springboot.webflux.app.service.IProductService;
 
 import reactor.core.publisher.Flux;
 
@@ -23,10 +23,10 @@ public class SpringBootWebfluxApiRestApplication implements CommandLineRunner {
 	private static final Logger log = LoggerFactory.getLogger(SpringBootWebfluxApiRestApplication.class);
 	
 	@Autowired
-	private ProductService productService;
+	private IProductService productService;
 	
 	@Autowired
-	private CategoryService categoryService;
+	private ICategoryService categoryService;
 	
 	@Autowired
 	private ReactiveMongoTemplate reactiveMongoTemplate;

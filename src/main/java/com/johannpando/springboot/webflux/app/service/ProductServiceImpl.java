@@ -3,17 +3,17 @@ package com.johannpando.springboot.webflux.app.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.johannpando.springboot.webflux.app.dao.ProductDAO;
+import com.johannpando.springboot.webflux.app.dao.IProductDAO;
 import com.johannpando.springboot.webflux.app.document.Product;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl implements IProductService {
 
 	@Autowired
-	private ProductDAO productDAO;
+	private IProductDAO productDAO;
 	
 	@Override
 	public Flux<Product> findAll() {
